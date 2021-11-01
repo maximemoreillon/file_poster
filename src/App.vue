@@ -8,6 +8,8 @@
       <v-card max-width="800px" class="mx-auto my-5">
         <v-toolbar dark color="primary">
           <v-toolbar-title>File POSTer</v-toolbar-title>
+          <v-spacer/>
+          <About />
         </v-toolbar>
         <v-form
           @submit.prevent="post_file()">
@@ -131,9 +133,12 @@
 </template>
 
 <script>
-
+import About from '@/components/About.vue'
 export default {
   name: 'App',
+  components: {
+    About,
+  },
   data(){
     return {
       fields: [],
