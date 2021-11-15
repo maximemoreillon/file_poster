@@ -30,7 +30,7 @@ spec:
     app: ${APPLICATION_NAME}
   ports:
   - port: 80
-    nodePort: ${NODEPORT}
+    nodePort: ${K8S_NODEPORT}
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
