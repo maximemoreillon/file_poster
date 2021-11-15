@@ -1,12 +1,10 @@
-stages:
-  - containerization
-
 variables:
   APPLICATION_NAME: file-poster
   DOCKER_IMAGE: ${DOCKER_HUB_USERNAME}/${APPLICATION_NAME}
+  K8S_INGRESS_HOST: fileposter.home.maximemoreillon.com
 
-containerization:
-  stage: containerization
+build:
+  stage: build
   tags:
     - moreillon
   script:
@@ -18,3 +16,15 @@ containerization:
     - docker push ${DOCKER_IMAGE}
     # Cleanup
     - docker image rm ${DOCKER_IMAGE}
+
+deploy:
+  stage: deploy
+  tags:
+    - moreillon
+  script:
+    - envsubst < kubernetes_manifest.yml | kubectl apply -f -
+    - kubectl rollout restart deployment/${APPLICATION_NAME}
+  environment:
+    name: production
+    kubernetes:
+      namespace: ${KUBERNETES_NAMESPACE}
