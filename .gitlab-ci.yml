@@ -1,6 +1,8 @@
+
 variables:
   APPLICATION_NAME: file-poster
   DOCKER_IMAGE: ${DOCKER_HUB_USERNAME}/${APPLICATION_NAME}
+  DOCKER_IMAGE_TAGGED: ${DOCKER_IMAGE}:${CI_COMMIT_SHORT_SHA}
   K8S_NODEPORT: 30020
   K8S_INGRESS_HOST: fileposter.home.maximemoreillon.com
 
@@ -13,10 +15,14 @@ build:
     - echo "${DOCKER_HUB_PASSWORD}" | docker login --username ${DOCKER_HUB_USERNAME} --password-stdin
     # Building the container image
     - docker build -t ${DOCKER_IMAGE} .
+    # Tagging
+    - docker tag ${DOCKER_IMAGE} ${DOCKER_IMAGE_TAGGED}
     # Pushing the image to the registry
     - docker push ${DOCKER_IMAGE}
+    - docker push ${DOCKER_IMAGE_TAGGED}
     # Cleanup
     - docker image rm ${DOCKER_IMAGE}
+    - docker image rm ${DOCKER_IMAGE_TAGGED}
 
 deploy:
   stage: deploy
@@ -24,7 +30,6 @@ deploy:
     - moreillon
   script:
     - envsubst < kubernetes_manifest.yml | kubectl apply -f -
-    - kubectl rollout restart deployment/${APPLICATION_NAME}
   environment:
     name: production
     kubernetes:
