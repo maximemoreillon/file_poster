@@ -321,8 +321,6 @@ export default {
          return acc
       }, {'Content-Type': 'multipart/form-data' })
 
-      console.log(headers);
-
 
       this.axios.post(this.url, formData, { headers })
         .then( (response) => {
