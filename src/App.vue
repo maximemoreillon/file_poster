@@ -8,11 +8,10 @@
       <v-card max-width="800px" class="mx-auto my-5">
         <v-toolbar dark color="primary">
           <v-toolbar-title>File POSTer</v-toolbar-title>
-          <v-spacer/>
+          <v-spacer />
           <About />
         </v-toolbar>
-        <v-form
-          @submit.prevent="post_file()">
+        <v-form @submit.prevent="post_file()">
 
 
           <v-card-text>
@@ -28,9 +27,7 @@
               <v-card-text>
                 <v-row>
                   <v-col>
-                    <v-text-field
-                      v-model="url"
-                      :rules="url_rules"/>
+                    <v-text-field v-model="url" :rules="url_rules" />
                   </v-col>
                 </v-row>
               </v-card-text>
@@ -50,15 +47,10 @@
               <v-card-text>
                 <v-row>
                   <v-col>
-                    <v-file-input
-                      label="file"
-                      v-model="file"/>
+                    <v-file-input label="file" v-model="file" />
                   </v-col>
                   <v-col>
-                    <v-text-field
-                      label="Field name"
-                      :rules="field_name_rules"
-                      v-model="field_name"/>
+                    <v-text-field label="Field name" :rules="field_name_rules" v-model="field_name" />
                   </v-col>
                 </v-row>
 
@@ -87,19 +79,12 @@
 
               <v-card-text>
                 <template v-if="fields.length">
-                  <v-row
-                    align="center"
-                    v-for="(field, field_index) in fields"
-                    :key="`field_${field_index}`">
+                  <v-row align="center" v-for="(field, field_index) in fields" :key="`field_${field_index}`">
                     <v-col>
-                      <v-text-field
-                        label="Field name"
-                        v-model="field.name"/>
+                      <v-text-field label="Field name" v-model="field.name" />
                     </v-col>
                     <v-col>
-                      <v-text-field
-                      label="Field value"
-                      v-model="field.value"/>
+                      <v-text-field label="Field value" v-model="field.value" />
                     </v-col>
                     <v-col cols="auto">
                       <v-btn icon @click="delete_field(field_index)">
@@ -140,19 +125,12 @@
 
               <v-card-text>
                 <template v-if="headers.length">
-                  <v-row
-                    align="center"
-                    v-for="(header, index) in headers"
-                    :key="`header_${index}`">
+                  <v-row align="center" v-for="(header, index) in headers" :key="`header_${index}`">
                     <v-col>
-                      <v-text-field
-                        label="Name"
-                        v-model="header.name"/>
+                      <v-text-field label="Name" v-model="header.name" />
                     </v-col>
                     <v-col>
-                      <v-text-field
-                      label="Value"
-                      v-model="header.value"/>
+                      <v-text-field label="Value" v-model="header.value" />
                     </v-col>
                     <v-col cols="auto">
                       <v-btn icon @click="delete_header(index)">
@@ -172,19 +150,35 @@
           </v-card-text>
 
           <v-card-text class="text-center">
-            <v-btn
-              large
-              type="submit"
-              :loading="posting"
-              :disabled="!url_valid || !file">
-              <v-icon>mdi-upload</v-icon>
-              <span>POST</span>
-            </v-btn>
+            <v-row>
+              <v-spacer />
+              <v-col cols="auto">
+                <v-btn 
+                  large 
+                  type="submit" 
+                  :loading="posting" 
+                  :disabled="!url_valid || !file">
+                  <v-icon>mdi-upload</v-icon>
+                  <span>POST</span>
+                </v-btn>
+              </v-col>
+              <v-col cols="auto">
+                <v-btn 
+                  large 
+                  :disabled="!posting"
+                  @click="cancel_upload()">
+                  <v-icon>mdi-close</v-icon>
+                  <span>cancel</span>
+                </v-btn>
+              </v-col>
+              <v-spacer />
+            </v-row>
+
           </v-card-text>
 
         </v-form>
 
-        <v-card-text v-if="response.body">
+        <v-card-text v-if="response">
           <v-card outlined>
             <v-toolbar flat>
               <v-row>
@@ -195,10 +189,10 @@
             </v-toolbar>
 
             <v-card-text>
-              <template v-if="response.status.code">
+              <template v-if="response.status">
                 <h3>Status</h3>
-                <p :class="{error_message: response.status.code.toString().charAt(0) !== '2', success_message: true}">
-                  {{response.status.code}} {{response.status.text}}
+                <p :class="{error_message: response.status.toString().charAt(0) !== '2', success_message: true}">
+                  {{response.status}} {{response.statusText}}
                 </p>
                 <h3>Content-type</h3>
                 <p>
@@ -206,24 +200,17 @@
                 </p>
               </template>
 
-              <template v-if="response.body">
-                <h3>Body</h3>
+              <template v-if="response.data">
+                <h3>Data</h3>
 
 
-                <p
-                  class="response_body"
-                  v-if="response.headers['content-type'].includes('text/html')"
-                  v-html="response.body"/>
-
-                <p
-                  class="response_body"
-                  v-else-if="response.headers['content-type'].includes('application/json')">
-                  <pre>{{response_pretty}}</pre>
+                <p class="response_body" v-if="response.headers['content-type'].includes('text/html')"
+                  v-html="response.data" />
+                <p class="response_body" v-else-if="response.headers['content-type'].includes('application/json')">
+                <pre>{{response_pretty}}</pre>
                 </p>
 
-                <p
-                  class="response_body"
-                  v-else>
+                <p class="response_body" v-else>
                   {{response.body}}
                 </p>
 
@@ -243,17 +230,11 @@
 
     </v-main>
 
-    <v-snackbar
-      :color="snackbar.color"
-      v-model="snackbar.open">
+    <v-snackbar :color="snackbar.color" v-model="snackbar.open">
       {{ snackbar.text }}
 
       <template v-slot:action="{ attrs }">
-        <v-btn
-          dark
-          text
-          v-bind="attrs"
-          @click="snackbar.open = false">
+        <v-btn dark text v-bind="attrs" @click="snackbar.open = false">
           Close
         </v-btn>
       </template>
@@ -264,6 +245,7 @@
 
 <script>
 import About from '@/components/About.vue'
+
 export default {
   name: 'App',
   components: {
@@ -275,7 +257,10 @@ export default {
       file: null,
       url: 'http://192.168.1.2:7070/file',
       field_name: 'image',
+
       posting: false,
+      abortController: null,
+
       url_rules: [
         v => !!v || 'URL is required',
         () => this.url_valid || 'URL is invalid',
@@ -288,26 +273,16 @@ export default {
       },
       headers: [],
 
-      response: {
 
-        error: null,
+      response: null,
 
-        loading: false,
-
-        headers: null,
-
-        status: {
-          code: null,
-          text: null,
-        },
-
-        body: null,
-      },
     }
   },
   methods: {
     post_file(){
       this.posting = true
+      this.error = null
+      this.abortController = new AbortController()
 
       const formData = new FormData()
       formData.append(this.field_name, this.file)
@@ -321,31 +296,29 @@ export default {
          return acc
       }, {'Content-Type': 'multipart/form-data' })
 
+      const options = {
+        headers,
+        signal: this.abortController.signal,
+      }
 
-      this.axios.post(this.url, formData, { headers })
+
+      this.axios.post(this.url, formData, options)
         .then( (response) => {
+
           this.snackbar.open = true
           this.snackbar.color = 'green'
           this.snackbar.text = 'POST successful'
 
-          this.response.status.code = response.status
-          this.response.status.text = response.statusText
-          this.response.body = response.data
-          this.$set(this.response, 'headers', response.headers)
+          this.response = response
 
         })
         .catch( (error) => {
 
           if(error.response) {
-            this.$set(this.response, 'headers', error.response.headers)
-            this.response.status.code = error.response.status
-            this.response.status.text = error.response.statusText
-            this.response.body = error.response.data
-            console.error(error.response.data)
+            this.response = error.response
           }
           else {
-            console.log(error)
-            this.response.error = `Network error`
+            console.error(error)
           }
 
           this.snackbar.open = true
@@ -359,6 +332,9 @@ export default {
         })
 
 
+    },
+    cancel_upload(){
+      this.abortController.abort()
     },
     add_field(){
       this.fields.push({name: '', value: ''})
