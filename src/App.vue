@@ -6,7 +6,7 @@
 
     <v-main class="grey lighten-4">
       <v-card max-width="800px" class="mx-auto my-5">
-        <v-toolbar dark color="primary">
+        <v-toolbar dark color="#444444">
           <v-toolbar-title>File POSTer</v-toolbar-title>
           <v-spacer />
           <About />
@@ -21,13 +21,18 @@
                   <v-col>
                     <v-toolbar-title>URL</v-toolbar-title>
                   </v-col>
+                  <v-spacer></v-spacer>
+                  <v-col cols="auto">
+                    <RequestHistoryDialog :history="request_history" @loadRequest="request = $event" />
+                  </v-col>
+
                 </v-row>
               </v-toolbar>
 
               <v-card-text>
                 <v-row>
                   <v-col>
-                    <v-text-field v-model="url" :rules="url_rules" />
+                    <v-text-field v-model="request.url" :rules="url_rules" />
                   </v-col>
                 </v-row>
               </v-card-text>
@@ -50,7 +55,7 @@
                     <v-file-input label="file" v-model="file" />
                   </v-col>
                   <v-col>
-                    <v-text-field label="Field name" :rules="field_name_rules" v-model="field_name" />
+                    <v-text-field label="Field name" :rules="field_name_rules" v-model="request.file_field_name" />
                   </v-col>
                 </v-row>
 
@@ -78,8 +83,8 @@
               </v-toolbar>
 
               <v-card-text>
-                <template v-if="fields.length">
-                  <v-row align="center" v-for="(field, field_index) in fields" :key="`field_${field_index}`">
+                <template v-if="request.fields.length">
+                  <v-row align="center" v-for="(field, field_index) in request.fields" :key="`field_${field_index}`">
                     <v-col>
                       <v-text-field label="Field name" v-model="field.name" />
                     </v-col>
@@ -124,8 +129,8 @@
               </v-toolbar>
 
               <v-card-text>
-                <template v-if="headers.length">
-                  <v-row align="center" v-for="(header, index) in headers" :key="`header_${index}`">
+                <template v-if="request.headers.length">
+                  <v-row align="center" v-for="(header, index) in request.headers" :key="`header_${index}`">
                     <v-col>
                       <v-text-field label="Name" v-model="header.name" />
                     </v-col>
@@ -153,20 +158,13 @@
             <v-row>
               <v-spacer />
               <v-col cols="auto">
-                <v-btn 
-                  large 
-                  type="submit" 
-                  :loading="posting" 
-                  :disabled="!url_valid || !file">
+                <v-btn large type="submit" :loading="posting" :disabled="!url_valid || !file">
                   <v-icon>mdi-upload</v-icon>
                   <span>POST</span>
                 </v-btn>
               </v-col>
               <v-col cols="auto">
-                <v-btn 
-                  large 
-                  :disabled="!posting"
-                  @click="cancel_upload()">
+                <v-btn large :disabled="!posting" @click="cancel_upload()">
                   <v-icon>mdi-close</v-icon>
                   <span>cancel</span>
                 </v-btn>
@@ -179,51 +177,7 @@
         </v-form>
 
         <v-card-text v-if="response">
-          <v-card outlined>
-            <v-toolbar flat>
-              <v-row>
-                <v-col>
-                  <v-toolbar-title>Response</v-toolbar-title>
-                </v-col>
-              </v-row>
-            </v-toolbar>
-
-            <v-card-text>
-              <template v-if="response.status">
-                <h3>Status</h3>
-                <p :class="{error_message: response.status.toString().charAt(0) !== '2', success_message: true}">
-                  {{response.status}} {{response.statusText}}
-                </p>
-                <h3>Content-type</h3>
-                <p>
-                  {{response.headers['content-type']}}
-                </p>
-              </template>
-
-              <template v-if="response.data">
-                <h3>Data</h3>
-
-
-                <p class="response_body" v-if="response.headers['content-type'].includes('text/html')"
-                  v-html="response.data" />
-                <p class="response_body" v-else-if="response.headers['content-type'].includes('application/json')">
-                <pre>{{response_pretty}}</pre>
-                </p>
-
-                <p class="response_body" v-else>
-                  {{response.body}}
-                </p>
-
-              </template>
-
-              <template v-if="response.error">
-                <h3>Error</h3>
-                <p class="error_message">
-                  {{response.error}}
-                </p>
-              </template>
-            </v-card-text>
-          </v-card>
+          <Response :response="response" :processing="posting" />
         </v-card-text>
 
       </v-card>
@@ -240,23 +194,40 @@
       </template>
     </v-snackbar>
 
+    <v-footer>
+      <v-col class="text-center" cols="12"> File POSTer - Maxime MOREILLON </v-col>
+    </v-footer>
+
   </v-app>
 </template>
 
 <script>
 import About from '@/components/About.vue'
+import Response from '@/components/Response.vue'
+import RequestHistoryDialog from '@/components/RequestHistoryDialog.vue'
+
 
 export default {
   name: 'App',
   components: {
     About,
+    Response,
+    RequestHistoryDialog
+
   },
   data(){
     return {
-      fields: [],
+      request: {
+        
+        url: 'http://192.168.1.2:7070/file',
+        file_field_name: 'image',
+
+        fields: [],
+        headers: [],
+      },
+
       file: null,
-      url: 'http://192.168.1.2:7070/file',
-      field_name: 'image',
+      
 
       posting: false,
       abortController: null,
@@ -271,38 +242,40 @@ export default {
         text: null,
         color: 'green'
       },
-      headers: [],
+      
+      request_history: [],
+
+
 
 
       response: null,
 
     }
   },
+  mounted() {
+    this.load_history()
+  },
+
   methods: {
     post_file(){
       this.posting = true
       this.error = null
       this.abortController = new AbortController()
 
+      this.add_request_to_history()
+
+
       const formData = new FormData()
-      formData.append(this.field_name, this.file)
+      formData.append(this.request.file_field_name, this.file)
 
-      this.fields.forEach((item) => {
-        formData.append(item.name, item.value)
-      })
+      this.request.fields.forEach((item) => { formData.append(item.name, item.value) })
 
-      const headers = this.headers.reduce( (acc, header) => {
-         acc[header.name] = header.value
-         return acc
-      }, {'Content-Type': 'multipart/form-data' })
-
-      const options = {
-        headers,
-        signal: this.abortController.signal,
-      }
+      const headers = this.request.headers.reduce( (acc, header) => ({...acc, [header.name] : header.value}), {'Content-Type': 'multipart/form-data' })
 
 
-      this.axios.post(this.url, formData, options)
+      const options = { headers, signal: this.abortController.signal }
+
+      this.axios.post(this.request.url, formData, options)
         .then( (response) => {
 
           this.snackbar.open = true
@@ -330,29 +303,51 @@ export default {
         .finally( () => {
           this.posting = false
         })
-
-
     },
+    add_request_to_history() {
+      const last_item = this.request_history[this.request_history.length - 1]
+      if (JSON.stringify(this.request) === JSON.stringify(last_item)) return
+      this.request_history.push({ ...this.request })
+      if (this.request_history.length > 10) this.request_history.shift()
+      this.save_history()
+    },
+    save_history() {
+      const history_stringified = JSON.stringify(this.request_history)
+      localStorage.file_poster_history = history_stringified
+    },
+    load_history() {
+      const history_stringified = localStorage.file_poster_history
+      if (!history_stringified) return
+      try {
+        this.request_history = JSON.parse(history_stringified)
+        const last_item = this.request_history[this.request_history.length - 1]
+        if (last_item)
+          this.request = { ...last_item }
+      } catch (error) {
+        console.warn(error)
+      }
+    },
+
     cancel_upload(){
       this.abortController.abort()
     },
     add_field(){
-      this.fields.push({name: '', value: ''})
+      this.request.fields.push({name: '', value: ''})
     },
     delete_field(i){
-      this.fields.splice(i,1)
+      this.request.fields.splice(i,1)
     },
     add_header(){
-      this.headers.push({name: '', value: ''})
+      this.request.headers.push({name: '', value: ''})
     },
     delete_header(i){
-      this.headers.splice(i,1)
+      this.request.headers.splice(i,1)
     }
   },
   computed: {
     url_valid(){
       try {
-        new URL(this.url)
+        new URL(this.request.url)
         return true
       }
       catch {
