@@ -12,7 +12,7 @@
             </v-card-title>
             <v-card-text>
                 <v-list>
-                    <v-list-item @click="$emit('loadRequest', item)" v-for="(item, index) in history_reversed"
+                    <v-list-item @click="$emit('loadRequest', item); dialog = false" v-for="(item, index) in history_reversed"
                         :key="index">
                         {{ item.url }}
                     </v-list-item>
