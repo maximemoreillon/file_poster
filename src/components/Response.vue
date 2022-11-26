@@ -1,5 +1,5 @@
 <template>
-    <v-card :loading="processing" height="100%" outlined>
+    <v-card height="100%" outlined>
         <v-toolbar flat>
             <v-row>
                 <v-col>

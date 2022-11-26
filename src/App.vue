@@ -2,8 +2,6 @@
   <v-app>
 
 
-
-
     <v-main class="grey lighten-4">
       <v-card max-width="800px" class="mx-auto my-5">
         <v-toolbar dark color="#444444">
@@ -30,126 +28,39 @@
               </v-toolbar>
 
               <v-card-text>
-                <v-row>
-                  <v-col>
-                    <v-text-field v-model="request.url" :rules="url_rules" />
-                  </v-col>
-                </v-row>
+                <v-text-field v-model="request.url" :rules="url_rules" />
               </v-card-text>
             </v-card>
           </v-card-text>
 
           <v-card-text>
             <v-card outlined>
-              <v-toolbar flat>
-                <v-row>
-                  <v-col>
-                    <v-toolbar-title>File</v-toolbar-title>
-                  </v-col>
-                </v-row>
+              <v-toolbar flat dense>
+                <v-tabs v-model="tab">
+                  <v-tabs-slider />
+                  <v-tab v-for="t in tabs" :key="t">{{t}}</v-tab>
+                </v-tabs>
               </v-toolbar>
-
+              <v-divider />
               <v-card-text>
-                <v-row>
-                  <v-col>
-                    <v-file-input label="file" v-model="file" />
-                  </v-col>
-                  <v-col>
-                    <v-text-field label="Field name" :rules="field_name_rules" v-model="request.file_field_name" />
-                  </v-col>
-                </v-row>
-
-              </v-card-text>
-            </v-card>
-          </v-card-text>
-
-          <v-card-text>
-            <v-card outlined>
-
-              <v-toolbar flat>
-                <v-row>
-                  <v-col>
-                    <v-toolbar-title>Fields</v-toolbar-title>
-                  </v-col>
-                  <v-spacer />
-
-                  <v-col cols="auto">
-                    <v-btn @click="add_field()">
-                      <v-icon>mdi-plus</v-icon>
-                      <span>Add field</span>
-                    </v-btn>
-                  </v-col>
-                </v-row>
-              </v-toolbar>
-
-              <v-card-text>
-                <template v-if="request.fields.length">
-                  <v-row align="center" v-for="(field, field_index) in request.fields" :key="`field_${field_index}`">
-                    <v-col>
-                      <v-text-field label="Field name" v-model="field.name" />
-                    </v-col>
-                    <v-col>
-                      <v-text-field label="Field value" v-model="field.value" />
-                    </v-col>
-                    <v-col cols="auto">
-                      <v-btn icon @click="delete_field(field_index)">
-                        <v-icon>mdi-delete</v-icon>
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </template>
-
-                <v-row v-else>
-                  <v-col>
-                    No fields
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-          </v-card-text>
-
-
-          <v-card-text>
-
-            <v-card outlined>
-              <v-toolbar flat>
-                <v-row>
-                  <v-col>
-                    <v-toolbar-title>Headers</v-toolbar-title>
-                  </v-col>
-                  <v-spacer />
-
-                  <v-col cols="auto">
-                    <v-btn @click="add_header()">
-                      <v-icon>mdi-plus</v-icon>
-                      <span>Add header</span>
-                    </v-btn>
-                  </v-col>
-                </v-row>
-              </v-toolbar>
-
-              <v-card-text>
-                <template v-if="request.headers.length">
-                  <v-row align="center" v-for="(header, index) in request.headers" :key="`header_${index}`">
-                    <v-col>
-                      <v-text-field label="Name" v-model="header.name" />
-                    </v-col>
-                    <v-col>
-                      <v-text-field label="Value" v-model="header.value" />
-                    </v-col>
-                    <v-col cols="auto">
-                      <v-btn icon @click="delete_header(index)">
-                        <v-icon>mdi-delete</v-icon>
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </template>
-
-                <v-row v-else>
-                  <v-col>
-                    No Headers
-                  </v-col>
-                </v-row>
+                <v-tabs-items v-model="tab">
+                  <v-tab-item>
+                      <v-row>
+                        <v-col>
+                          <v-file-input label="file" v-model="file" />
+                        </v-col>
+                        <v-col>
+                          <v-text-field label="Field name" :rules="field_name_rules" v-model="request.file_field_name" />
+                        </v-col>
+                      </v-row>
+                  </v-tab-item>
+                  <v-tab-item>
+                    <RequestFields v-model="request.fields"/>
+                  </v-tab-item>
+                  <v-tab-item>
+                    <RequestHeaders v-model="request.headers" />
+                  </v-tab-item>
+                </v-tabs-items>
               </v-card-text>
             </v-card>
           </v-card-text>
@@ -175,6 +86,12 @@
           </v-card-text>
 
         </v-form>
+
+        <v-card-text v-if="posting">
+          <v-progress-linear height="25" :value="this.uploadProgress" rounded>
+            {{this.uploadProgress}}%
+          </v-progress-linear>
+        </v-card-text>
 
         <v-card-text v-if="response">
           <Response :response="response" :processing="posting" />
@@ -205,14 +122,17 @@
 import About from '@/components/About.vue'
 import Response from '@/components/Response.vue'
 import RequestHistoryDialog from '@/components/RequestHistoryDialog.vue'
-
+import RequestHeaders from './components/RequestHeaders.vue'
+import RequestFields from './components/RequestFields.vue'
 
 export default {
   name: 'App',
   components: {
     About,
     Response,
-    RequestHistoryDialog
+    RequestHistoryDialog,
+    RequestHeaders,
+    RequestFields
 
   },
   data(){
@@ -230,6 +150,7 @@ export default {
       
 
       posting: false,
+      uploadProgress: 0,
       abortController: null,
 
       url_rules: [
@@ -245,10 +166,10 @@ export default {
       
       request_history: [],
 
-
-
-
       response: null,
+
+      tab: null,
+      tabs: ['File', 'Fields', 'Headers']
 
     }
   },
@@ -259,6 +180,8 @@ export default {
   methods: {
     post_file(){
       this.posting = true
+      this.uploadProgress = 0
+
       this.error = null
       this.abortController = new AbortController()
 
@@ -273,7 +196,13 @@ export default {
       const headers = this.request.headers.reduce( (acc, header) => ({...acc, [header.name] : header.value}), {'Content-Type': 'multipart/form-data' })
 
 
-      const options = { headers, signal: this.abortController.signal }
+      const options = { 
+        headers, 
+        signal: this.abortController.signal,
+        onUploadProgress: (progressEvent) => {
+          this.uploadProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+        },
+      }
 
       this.axios.post(this.request.url, formData, options)
         .then( (response) => {
@@ -331,12 +260,7 @@ export default {
     cancel_upload(){
       this.abortController.abort()
     },
-    add_field(){
-      this.request.fields.push({name: '', value: ''})
-    },
-    delete_field(i){
-      this.request.fields.splice(i,1)
-    },
+    
     add_header(){
       this.request.headers.push({name: '', value: ''})
     },
