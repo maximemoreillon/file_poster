@@ -5,7 +5,7 @@
     <v-main class="grey lighten-4">
       <v-card max-width="800px" class="mx-auto my-5">
         <v-toolbar dark color="#444444">
-          <v-img src="@/assets/moreillon_logo.png" max-height="2.5em" max-width="2.5em" class="mr-2"></v-img>
+          <v-img src="@/assets/moreillon_logo.png" max-height="2.5em" max-width="2.5em" class="mr-2 rotating_logo"></v-img>
           <v-toolbar-title>File POSTer</v-toolbar-title>
           <v-spacer />
           <About />
@@ -304,5 +304,21 @@ export default {
 }
 .error_message {
   color: #c00000;
+}
+
+.rotating_logo {
+  animation-name: rotating_logo;
+  animation-duration: 60s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes rotating_logo {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
