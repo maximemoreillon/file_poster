@@ -2,36 +2,34 @@
   <div>
     <v-row>
       <v-col cols="auto">
-        <v-btn small @click="add_header()">
+        <v-btn small @click="add_file()">
           <v-icon left>mdi-plus</v-icon>
-          <span>Add header</span>
+          <span>Add file</span>
         </v-btn>
       </v-col>
     </v-row>
-    <div v-if="headers.length">
+    <div>
       <v-row
-        v-for="(item, index) in headers"
-        :key="`header_item_${index}`"
+        v-for="(item, index) in files"
+        :key="`file_item_${index}`"
         align="center"
       >
         <v-col>
-          <v-text-field v-model="item.key" placeholder="Key" />
+          <v-file-input label="file" />
         </v-col>
         <v-col cols="auto">:</v-col>
         <v-col>
-          <v-text-field v-model="item.value" placeholder="Value" />
+          <v-text-field
+            label="Field name"
+            :rules="field_name_rules"
+            v-model="file_field_name"
+          />
         </v-col>
         <v-col cols="auto">
-          <v-btn icon @click="delete_header(index)">
+          <v-btn icon @click="delete_file(index)" :disabled="files.length < 2">
             <v-icon>mdi-delete</v-icon>
           </v-btn>
         </v-col>
-      </v-row>
-    </div>
-
-    <div v-else>
-      <v-row>
-        <v-col cols="auto"> No headers </v-col>
       </v-row>
     </div>
   </div>
@@ -39,20 +37,26 @@
 
 <script>
 export default {
-  name: "RequestHeadersManagement",
+  name: "RequestFilesManagement",
   props: {
     value: Array,
   },
+  data() {
+    return {
+      file_field_name: "image",
+      field_name_rules: [(v) => !!v || "Field name is required"],
+    };
+  },
   methods: {
-    add_header() {
-      this.headers.push({ key: "", value: "" });
+    add_file() {
+      this.files.push({ file: "", field_name: "" });
     },
-    delete_header(index) {
-      this.headers.splice(index, 1);
+    delete_file(index) {
+      this.files.splice(index, 1);
     },
   },
   computed: {
-    headers: {
+    files: {
       get() {
         return this.value;
       },
