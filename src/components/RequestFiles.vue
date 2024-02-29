@@ -15,18 +15,22 @@
         align="center"
       >
         <v-col>
-          <v-file-input label="file" />
+          <v-file-input v-model="item.file" label="file" />
         </v-col>
         <v-col cols="auto">:</v-col>
         <v-col>
           <v-text-field
+            v-model="item.field_name"
             label="Field name"
             :rules="field_name_rules"
-            v-model="file_field_name"
           />
         </v-col>
         <v-col cols="auto">
-          <v-btn icon @click="delete_file(index)" :disabled="files.length < 2">
+          <v-btn
+            icon
+            @click="delete_file(index)"
+            :disabled="files.length === 1"
+          >
             <v-icon>mdi-delete</v-icon>
           </v-btn>
         </v-col>
@@ -43,13 +47,12 @@ export default {
   },
   data() {
     return {
-      file_field_name: "image",
       field_name_rules: [(v) => !!v || "Field name is required"],
     };
   },
   methods: {
     add_file() {
-      this.files.push({ file: "", field_name: "" });
+      this.files.push({ file: null, field_name: "aa" });
     },
     delete_file(index) {
       this.files.splice(index, 1);

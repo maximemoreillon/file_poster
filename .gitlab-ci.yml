@@ -1,4 +1,3 @@
-
 variables:
   APPLICATION_NAME: file-poster
   DOCKER_IMAGE: ${DOCKER_HUB_USERNAME}/${APPLICATION_NAME}
@@ -8,9 +7,10 @@ image: moreillon/ci-dind
 services:
   - name: docker:19.03.12-dind
 
-
 build:
   stage: build
+  only:
+    - master
   tags:
     - dind
   script:

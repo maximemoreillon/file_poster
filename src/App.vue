@@ -70,7 +70,7 @@
                   large
                   type="submit"
                   :loading="posting"
-                  :disabled="!url_valid || !file"
+                  :disabled="!url_valid"
                 >
                   <v-icon>mdi-upload</v-icon>
                   <span>POST</span>
@@ -140,12 +140,10 @@ export default {
       request: {
         url: "http://192.168.1.2:7070/file",
 
-        files: [{ file: "", field_name: "" }],
+        files: [{ file: null, field_name: "first" }],
         fields: [],
         headers: [],
       },
-
-      file: null,
 
       posting: false,
       uploadProgress: 0,
@@ -166,7 +164,7 @@ export default {
       response: null,
 
       tab: null,
-      tabs: ["File", "Fields", "Headers"],
+      tabs: ["Files", "Fields", "Headers"],
     };
   },
   mounted() {
@@ -184,7 +182,10 @@ export default {
       this.add_request_to_history();
 
       const formData = new FormData();
-      formData.append(this.request.file_field_name, this.file);
+
+      this.request.files.forEach((item) => {
+        formData.append(item.field_name, item.file);
+      });
 
       this.request.fields.forEach((item) => {
         formData.append(item.name, item.value);
@@ -232,7 +233,12 @@ export default {
     add_request_to_history() {
       const last_item = this.request_history[this.request_history.length - 1];
       if (JSON.stringify(this.request) === JSON.stringify(last_item)) return;
-      this.request_history.push({ ...this.request });
+      this.request_history.push({
+        ...this.request,
+        files: this.request.files.map((item) => {
+          return { file: null, field_name: item.field_name };
+        }),
+      });
       if (this.request_history.length > 10) this.request_history.shift();
       this.save_history();
     },
@@ -254,13 +260,6 @@ export default {
 
     cancel_upload() {
       this.abortController.abort();
-    },
-
-    add_header() {
-      this.request.headers.push({ name: "", value: "" });
-    },
-    delete_header(i) {
-      this.request.headers.splice(i, 1);
     },
   },
   computed: {
