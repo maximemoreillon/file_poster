@@ -70,7 +70,7 @@
                   large
                   type="submit"
                   :loading="posting"
-                  :disabled="!url_valid"
+                  :disabled="!url_valid || !files_valid || !field_name_valid"
                 >
                   <v-icon>mdi-upload</v-icon>
                   <span>POST</span>
@@ -137,10 +137,12 @@ export default {
   },
   data() {
     return {
+      // valid: true,
+
       request: {
         url: "http://192.168.1.2:7070/file",
 
-        files: [{ file: null, field_name: "first" }],
+        files: [{ file: null, field_name: "image" }],
         fields: [],
         headers: [],
       },
@@ -270,6 +272,24 @@ export default {
       } catch {
         return false;
       }
+    },
+    files_valid() {
+      let valid_flag = true;
+      this.request.files.forEach((item) => {
+        if (!item.file) {
+          valid_flag = false;
+        }
+      });
+      return valid_flag;
+    },
+    field_name_valid() {
+      let valid_flag = true;
+      this.request.files.forEach((item) => {
+        if (!item.field_name) {
+          valid_flag = false;
+        }
+      });
+      return valid_flag;
     },
     response_pretty() {
       let output;

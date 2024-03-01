@@ -15,7 +15,12 @@
         align="center"
       >
         <v-col>
-          <v-file-input v-model="item.file" label="file" />
+          <v-file-input
+            v-model="item.file"
+            label="file"
+            :rules="file_rules"
+            required
+          />
         </v-col>
         <v-col cols="auto">:</v-col>
         <v-col>
@@ -23,6 +28,7 @@
             v-model="item.field_name"
             label="Field name"
             :rules="field_name_rules"
+            required
           />
         </v-col>
         <v-col cols="auto">
@@ -47,12 +53,13 @@ export default {
   },
   data() {
     return {
+      file_rules: [(v) => !!v || "File is required"],
       field_name_rules: [(v) => !!v || "Field name is required"],
     };
   },
   methods: {
     add_file() {
-      this.files.push({ file: null, field_name: "aa" });
+      this.files.push({ file: null, field_name: "image" });
     },
     delete_file(index) {
       this.files.splice(index, 1);
