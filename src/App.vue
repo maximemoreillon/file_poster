@@ -1,19 +1,24 @@
 <template>
   <v-app>
-    <v-main class="grey lighten-4">
-      <v-card max-width="800px" class="mx-auto my-5">
-        <v-toolbar dark color="#444444">
-          <v-img
-            src="@/assets/moreillon_logo.png"
-            max-height="2.5em"
-            max-width="2.5em"
-            class="mr-2 rotating_logo"
-          ></v-img>
-          <v-toolbar-title>File POSTer</v-toolbar-title>
-          <v-spacer />
-          <About />
-        </v-toolbar>
-        <v-form @submit.prevent="post_file()">
+    <v-form
+      ref="form"
+      v-model="valid"
+      lazy-validation
+      @submit.prevent="post_file()"
+    >
+      <v-main class="grey lighten-4">
+        <v-card max-width="800px" class="mx-auto my-5">
+          <v-toolbar dark color="#444444">
+            <v-img
+              src="@/assets/moreillon_logo.png"
+              max-height="2.5em"
+              max-width="2.5em"
+              class="mr-2 rotating_logo"
+            ></v-img>
+            <v-toolbar-title>File POSTer</v-toolbar-title>
+            <v-spacer />
+            <About />
+          </v-toolbar>
           <v-card-text>
             <v-card outlined>
               <v-toolbar flat>
@@ -70,7 +75,7 @@
                   large
                   type="submit"
                   :loading="posting"
-                  :disabled="!url_valid || !files_valid || !field_name_valid"
+                  :disabled="!valid"
                 >
                   <v-icon>mdi-upload</v-icon>
                   <span>POST</span>
@@ -85,35 +90,35 @@
               <v-spacer />
             </v-row>
           </v-card-text>
-        </v-form>
 
-        <v-card-text v-if="posting">
-          <v-progress-linear height="25" :value="this.uploadProgress" rounded>
-            {{ this.uploadProgress }}%
-          </v-progress-linear>
-        </v-card-text>
+          <v-card-text v-if="posting">
+            <v-progress-linear height="25" :value="this.uploadProgress" rounded>
+              {{ this.uploadProgress }}%
+            </v-progress-linear>
+          </v-card-text>
 
-        <v-card-text v-if="response">
-          <Response :response="response" :processing="posting" />
-        </v-card-text>
-      </v-card>
-    </v-main>
+          <v-card-text v-if="response">
+            <Response :response="response" :processing="posting" />
+          </v-card-text>
+        </v-card>
+      </v-main>
 
-    <v-snackbar :color="snackbar.color" v-model="snackbar.open">
-      {{ snackbar.text }}
+      <v-snackbar :color="snackbar.color" v-model="snackbar.open">
+        {{ snackbar.text }}
 
-      <template v-slot:action="{ attrs }">
-        <v-btn dark text v-bind="attrs" @click="snackbar.open = false">
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
+        <template v-slot:action="{ attrs }">
+          <v-btn dark text v-bind="attrs" @click="snackbar.open = false">
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
 
-    <v-footer>
-      <v-col class="text-center" cols="12">
-        File POSTer - Maxime MOREILLON
-      </v-col>
-    </v-footer>
+      <v-footer>
+        <v-col class="text-center" cols="12">
+          File POSTer - Maxime MOREILLON
+        </v-col>
+      </v-footer>
+    </v-form>
   </v-app>
 </template>
 
@@ -137,7 +142,9 @@ export default {
   },
   data() {
     return {
-      // valid: true,
+      parentMessage: "Hello from parent!",
+
+      valid: false,
 
       request: {
         url: "http://192.168.1.2:7070/file",
@@ -153,7 +160,14 @@ export default {
 
       url_rules: [
         (v) => !!v || "URL is required",
-        () => this.url_valid || "URL is invalid",
+        (v) => {
+          try {
+            new URL(v);
+            return true;
+          } catch {
+            return "URL is invalid";
+          }
+        },
       ],
       snackbar: {
         open: false,
@@ -171,10 +185,19 @@ export default {
   },
   mounted() {
     this.load_history();
+    this.validate();
   },
 
   methods: {
+    validate() {
+      setTimeout(() => {
+        this.$refs.form.validate();
+      }, 100);
+    },
+
     post_file() {
+      if (!this.valid) return;
+
       this.posting = true;
       this.uploadProgress = 0;
 
@@ -265,32 +288,6 @@ export default {
     },
   },
   computed: {
-    url_valid() {
-      try {
-        new URL(this.request.url);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    files_valid() {
-      let valid_flag = true;
-      this.request.files.forEach((item) => {
-        if (!item.file) {
-          valid_flag = false;
-        }
-      });
-      return valid_flag;
-    },
-    field_name_valid() {
-      let valid_flag = true;
-      this.request.files.forEach((item) => {
-        if (!item.field_name) {
-          valid_flag = false;
-        }
-      });
-      return valid_flag;
-    },
     response_pretty() {
       let output;
       try {
@@ -299,6 +296,15 @@ export default {
         output = this.response.body;
       }
       return output;
+    },
+  },
+
+  watch: {
+    request: {
+      handler() {
+        this.validate();
+      },
+      deep: true,
     },
   },
 };

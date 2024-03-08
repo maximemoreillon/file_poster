@@ -15,11 +15,21 @@
         align="center"
       >
         <v-col>
-          <v-text-field v-model="item.name" placeholder="Key" />
+          <v-text-field
+            v-model="item.name"
+            placeholder="Key"
+            :rules="key_rules"
+            required
+          />
         </v-col>
         <v-col cols="auto">:</v-col>
         <v-col>
-          <v-text-field v-model="item.value" placeholder="Value" />
+          <v-text-field
+            v-model="item.value"
+            placeholder="Value"
+            :rules="value_rules"
+            required
+          />
         </v-col>
         <v-col cols="auto">
           <v-btn icon @click="delete_field(index)">
@@ -42,6 +52,12 @@ export default {
   name: "RequestHeadersManagement",
   props: {
     value: Array,
+  },
+  data() {
+    return {
+      key_rules: [(v) => !!v || "Key is required"],
+      value_rules: [(v) => !!v || "Value is required"],
+    };
   },
   methods: {
     add_field() {
