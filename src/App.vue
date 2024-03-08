@@ -27,7 +27,7 @@
                     <v-toolbar-title>URL</v-toolbar-title>
                   </v-col>
                   <v-spacer></v-spacer>
-                  <v-col cols="auto">
+                  <v-col v-if="!url_disabled" cols="auto">
                     <RequestHistoryDialog
                       :history="request_history"
                       @loadRequest="request = $event"
@@ -37,7 +37,11 @@
               </v-toolbar>
 
               <v-card-text>
-                <v-text-field v-model="request.url" :rules="url_rules" />
+                <v-text-field
+                  v-model="request.url"
+                  :rules="url_rules"
+                  :disabled="url_disabled"
+                />
               </v-card-text>
             </v-card>
           </v-card-text>
@@ -142,12 +146,12 @@ export default {
   },
   data() {
     return {
-      parentMessage: "Hello from parent!",
-
       valid: false,
 
+      url_disabled: !!process.env.VUE_APP_TARGET_URL,
+
       request: {
-        url: "http://192.168.1.2:7070/file",
+        url: process.env.VUE_APP_TARGET_URL,
 
         files: [{ file: null, field_name: "image" }],
         fields: [],
@@ -184,7 +188,15 @@ export default {
     };
   },
   mounted() {
-    this.load_history();
+    if (process.env.VUE_APP_DEFAULT_FILES) {
+      this.request.files = process.env.VUE_APP_DEFAULT_FILES.split(",").map(
+        (field_name) => ({
+          file: null,
+          field_name,
+        })
+      );
+    }
+    if (!this.url_disabled) this.load_history();
     this.validate();
   },
 
