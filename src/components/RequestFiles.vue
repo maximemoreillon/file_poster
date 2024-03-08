@@ -2,46 +2,44 @@
   <div>
     <v-row>
       <v-col cols="auto">
-        <v-btn small @click="add_field()">
+        <v-btn small @click="add_file()">
           <v-icon left>mdi-plus</v-icon>
-          <span>Add field</span>
+          <span>Add file</span>
         </v-btn>
       </v-col>
     </v-row>
-    <div v-if="fields.length">
+    <div>
       <v-row
-        v-for="(item, index) in fields"
-        :key="`field_item_${index}`"
+        v-for="(item, index) in files"
+        :key="`file_item_${index}`"
         align="center"
       >
         <v-col>
-          <v-text-field
-            v-model="item.name"
-            placeholder="Key"
-            :rules="key_rules"
+          <v-file-input
+            v-model="item.file"
+            label="file"
+            :rules="file_rules"
             required
           />
         </v-col>
         <v-col cols="auto">:</v-col>
         <v-col>
           <v-text-field
-            v-model="item.value"
-            placeholder="Value"
-            :rules="value_rules"
+            v-model="item.field_name"
+            label="Field name"
+            :rules="field_name_rules"
             required
           />
         </v-col>
         <v-col cols="auto">
-          <v-btn icon @click="delete_field(index)">
+          <v-btn
+            icon
+            @click="delete_file(index)"
+            :disabled="files.length === 1"
+          >
             <v-icon>mdi-delete</v-icon>
           </v-btn>
         </v-col>
-      </v-row>
-    </div>
-
-    <div v-else>
-      <v-row>
-        <v-col cols="auto"> No fields </v-col>
       </v-row>
     </div>
   </div>
@@ -49,26 +47,26 @@
 
 <script>
 export default {
-  name: "RequestHeadersManagement",
+  name: "RequestFilesManagement",
   props: {
     value: Array,
   },
   data() {
     return {
-      key_rules: [(v) => !!v || "Key is required"],
-      value_rules: [(v) => !!v || "Value is required"],
+      file_rules: [(v) => !!v || "File is required"],
+      field_name_rules: [(v) => !!v || "Field name is required"],
     };
   },
   methods: {
-    add_field() {
-      this.fields.push({ name: "", value: "" });
+    add_file() {
+      this.files.push({ file: null, field_name: "image" });
     },
-    delete_field(i) {
-      this.fields.splice(i, 1);
+    delete_file(index) {
+      this.files.splice(index, 1);
     },
   },
   computed: {
-    fields: {
+    files: {
       get() {
         return this.value;
       },
