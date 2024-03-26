@@ -2,7 +2,7 @@
   <div>
     <v-row>
       <v-col cols="auto">
-        <v-btn small @click="add_file()">
+        <v-btn small v-if="!files_disabled" @click="add_file()">
           <v-icon left>mdi-plus</v-icon>
           <span>Add file</span>
         </v-btn>
@@ -34,6 +34,7 @@
         <v-col cols="auto">
           <v-btn
             icon
+            v-if="!files_disabled"
             @click="delete_file(index)"
             :disabled="files.length === 1"
           >
@@ -46,6 +47,8 @@
 </template>
 
 <script>
+const { VUE_APP_TARGET_FILES } = process.env;
+
 export default {
   name: "RequestFilesManagement",
   props: {
@@ -53,6 +56,8 @@ export default {
   },
   data() {
     return {
+      files_disabled: VUE_APP_TARGET_FILES,
+
       file_rules: [(v) => !!v || "File is required"],
       field_name_rules: [(v) => !!v || "Field name is required"],
     };
