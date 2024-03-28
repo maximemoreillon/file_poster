@@ -9,7 +9,7 @@ do
   echo "Processing $file ...";
 
   sed -i 's|VUE_APP_TARGET_URL_PLACEHOLDER|'${VUE_APP_TARGET_URL}'|g' $file
-  sed -i 's|VUE_APP_DEFAULT_FILES_PLACEHOLDER|'${VUE_APP_DEFAULT_FILES}'|g' $file
+  sed -i 's|VUE_APP_FILES_PLACEHOLDER|'${VUE_APP_FILES}'|g' $file
 
 
 

@@ -2,7 +2,7 @@
   <div>
     <v-row>
       <v-col cols="auto">
-        <v-btn small @click="add_file()">
+        <v-btn small v-if="editable" @click="add_file()">
           <v-icon left>mdi-plus</v-icon>
           <span>Add file</span>
         </v-btn>
@@ -28,12 +28,14 @@
             v-model="item.field_name"
             label="Field name"
             :rules="field_name_rules"
+            :disabled="!editable"
             required
           />
         </v-col>
         <v-col cols="auto">
           <v-btn
             icon
+            v-if="editable"
             @click="delete_file(index)"
             :disabled="files.length === 1"
           >
@@ -50,6 +52,7 @@ export default {
   name: "RequestFilesManagement",
   props: {
     value: Array,
+    editable: Boolean,
   },
   data() {
     return {

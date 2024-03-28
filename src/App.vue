@@ -25,7 +25,7 @@
                 <v-toolbar-title>URL</v-toolbar-title>
                 <v-spacer></v-spacer>
                 <RequestHistoryDialog
-                  v-if="!url_disabled"
+                  v-if="editable"
                   cols="auto"
                   :history="request_history"
                   @loadRequest="request = $event"
@@ -36,7 +36,7 @@
                 <v-text-field
                   v-model="request.url"
                   :rules="url_rules"
-                  :disabled="!!url_disabled"
+                  :disabled="!editable"
                 />
               </v-card-text>
             </v-card>
@@ -54,7 +54,10 @@
               <v-card-text>
                 <v-tabs-items v-model="tab">
                   <v-tab-item>
-                    <RequestFiles v-model="request.files" />
+                    <RequestFiles
+                      v-model="request.files"
+                      :editable="editable"
+                    />
                   </v-tab-item>
                   <v-tab-item>
                     <RequestFields v-model="request.fields" />
@@ -123,14 +126,14 @@
 </template>
 
 <script>
-import About from "@/components/About.vue"
-import Response from "@/components/Response.vue"
-import RequestHistoryDialog from "@/components/RequestHistoryDialog.vue"
-import RequestFiles from "./components/RequestFiles.vue"
-import RequestHeaders from "./components/RequestHeaders.vue"
-import RequestFields from "./components/RequestFields.vue"
+import About from "@/components/About.vue";
+import Response from "@/components/Response.vue";
+import RequestHistoryDialog from "@/components/RequestHistoryDialog.vue";
+import RequestFiles from "./components/RequestFiles.vue";
+import RequestHeaders from "./components/RequestHeaders.vue";
+import RequestFields from "./components/RequestFields.vue";
 
-const { VUE_APP_DEFAULT_FILES, VUE_APP_TARGET_URL } = process.env
+const { VUE_APP_TARGET_URL = "", VUE_APP_FILES = "" } = process.env;
 
 export default {
   name: "App",
@@ -146,10 +149,8 @@ export default {
     return {
       valid: false,
 
-      url_disabled: VUE_APP_TARGET_URL,
-
       request: {
-        url: VUE_APP_TARGET_URL,
+        url: "http://localhost:8080/test",
 
         files: [{ file: null, field_name: "image" }],
         fields: [],
@@ -164,10 +165,10 @@ export default {
         (v) => !!v || "URL is required",
         (v) => {
           try {
-            new URL(v)
-            return true
+            new URL(v);
+            return true;
           } catch {
-            return "URL is invalid"
+            return "URL is invalid";
           }
         },
       ],
@@ -183,53 +184,59 @@ export default {
 
       tab: null,
       tabs: ["Files", "Fields", "Headers"],
-    }
+    };
   },
   mounted() {
-    if (VUE_APP_DEFAULT_FILES) {
-      this.request.files = VUE_APP_DEFAULT_FILES.split(",").map(
-        (field_name) => ({
-          file: null,
-          field_name,
-        })
-      )
+    if (VUE_APP_TARGET_URL) {
+      this.request.url = VUE_APP_TARGET_URL;
+
+      this.request.files = VUE_APP_FILES
+        ? VUE_APP_FILES.split(",").map((field_name) => ({
+            file: null,
+            field_name,
+          }))
+        : [];
     }
-    if (!this.url_disabled) this.load_history()
-    this.validate()
+
+    if (this.request.files.length === 0) {
+      console.warn("misconfigured environment");
+    }
+
+    this.validate();
   },
 
   methods: {
     validate() {
       setTimeout(() => {
-        this.$refs.form.validate()
-      }, 100)
+        this.$refs.form.validate();
+      }, 100);
     },
 
     post_file() {
-      if (!this.valid) return
+      if (!this.valid) return;
 
-      this.posting = true
-      this.uploadProgress = 0
+      this.posting = true;
+      this.uploadProgress = 0;
 
-      this.error = null
-      this.abortController = new AbortController()
+      this.error = null;
+      this.abortController = new AbortController();
 
-      this.add_request_to_history()
+      this.add_request_to_history();
 
-      const formData = new FormData()
+      const formData = new FormData();
 
       this.request.files.forEach((item) => {
-        formData.append(item.field_name, item.file)
-      })
+        formData.append(item.field_name, item.file);
+      });
 
       this.request.fields.forEach((item) => {
-        formData.append(item.name, item.value)
-      })
+        formData.append(item.name, item.value);
+      });
 
       const headers = this.request.headers.reduce(
         (acc, header) => ({ ...acc, [header.name]: header.value }),
         { "Content-Type": "multipart/form-data" }
-      )
+      );
 
       const options = {
         headers,
@@ -237,87 +244,90 @@ export default {
         onUploadProgress: (progressEvent) => {
           this.uploadProgress = Math.round(
             (progressEvent.loaded * 100) / progressEvent.total
-          )
+          );
         },
-      }
+      };
 
       this.axios
         .post(this.request.url, formData, options)
         .then((response) => {
-          this.snackbar.open = true
-          this.snackbar.color = "green"
-          this.snackbar.text = "POST successful"
+          this.snackbar.open = true;
+          this.snackbar.color = "green";
+          this.snackbar.text = "POST successful";
 
-          this.response = response
+          this.response = response;
         })
         .catch((error) => {
           if (error.response) {
-            this.response = error.response
+            this.response = error.response;
           } else {
-            console.error(error)
+            console.error(error);
           }
 
-          this.snackbar.open = true
-          this.snackbar.color = "red"
-          this.snackbar.text = "POST failed, see console for details"
+          this.snackbar.open = true;
+          this.snackbar.color = "red";
+          this.snackbar.text = "POST failed, see console for details";
         })
         .finally(() => {
-          this.posting = false
-        })
+          this.posting = false;
+        });
     },
     add_request_to_history() {
-      const last_item = this.request_history[this.request_history.length - 1]
-      if (JSON.stringify(this.request) === JSON.stringify(last_item)) return
+      const last_item = this.request_history[this.request_history.length - 1];
+      if (JSON.stringify(this.request) === JSON.stringify(last_item)) return;
       this.request_history.push({
         ...this.request,
         files: this.request.files.map((item) => {
-          return { file: null, field_name: item.field_name }
+          return { file: null, field_name: item.field_name };
         }),
-      })
-      if (this.request_history.length > 10) this.request_history.shift()
-      this.save_history()
+      });
+      if (this.request_history.length > 10) this.request_history.shift();
+      this.save_history();
     },
     save_history() {
-      const history_stringified = JSON.stringify(this.request_history)
-      localStorage.file_poster_history = history_stringified
+      const history_stringified = JSON.stringify(this.request_history);
+      localStorage.file_poster_history = history_stringified;
     },
     load_history() {
-      const history_stringified = localStorage.file_poster_history
-      if (!history_stringified) return
+      const history_stringified = localStorage.file_poster_history;
+      if (!history_stringified) return;
       try {
-        this.request_history = JSON.parse(history_stringified)
-        const last_item = this.request_history[this.request_history.length - 1]
-        if (last_item) this.request = { ...last_item }
+        this.request_history = JSON.parse(history_stringified);
+        const last_item = this.request_history[this.request_history.length - 1];
+        if (last_item) this.request = { ...last_item };
       } catch (error) {
-        console.warn(error)
+        console.warn(error);
       }
     },
 
     cancel_upload() {
-      this.abortController.abort()
+      this.abortController.abort();
     },
   },
   computed: {
+    editable() {
+      return !VUE_APP_TARGET_URL;
+    },
     response_pretty() {
-      let output
+      let output;
       try {
-        output = JSON.stringify(JSON.parse(this.response.body), null, 2)
+        output = JSON.stringify(JSON.parse(this.response.body), null, 2);
       } catch (error) {
-        output = this.response.body
+        output = this.response.body;
       }
-      return output
+      return output;
     },
   },
 
   watch: {
     request: {
       handler() {
-        this.validate()
+        this.validate();
       },
       deep: true,
     },
   },
-}
+};
 </script>
 
 <style>
