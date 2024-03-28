@@ -2,7 +2,7 @@
   <div>
     <v-row>
       <v-col cols="auto">
-        <v-btn small v-if="!files_disabled" @click="add_file()">
+        <v-btn small v-if="editable" @click="add_file()">
           <v-icon left>mdi-plus</v-icon>
           <span>Add file</span>
         </v-btn>
@@ -28,13 +28,14 @@
             v-model="item.field_name"
             label="Field name"
             :rules="field_name_rules"
+            :disabled="!editable"
             required
           />
         </v-col>
         <v-col cols="auto">
           <v-btn
             icon
-            v-if="!files_disabled"
+            v-if="editable"
             @click="delete_file(index)"
             :disabled="files.length === 1"
           >
@@ -47,17 +48,14 @@
 </template>
 
 <script>
-const { VUE_APP_TARGET_FILES } = process.env;
-
 export default {
   name: "RequestFilesManagement",
   props: {
     value: Array,
+    editable: Boolean,
   },
   data() {
     return {
-      files_disabled: VUE_APP_TARGET_FILES,
-
       file_rules: [(v) => !!v || "File is required"],
       field_name_rules: [(v) => !!v || "Field name is required"],
     };

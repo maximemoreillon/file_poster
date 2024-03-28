@@ -25,7 +25,7 @@
                 <v-toolbar-title>URL</v-toolbar-title>
                 <v-spacer></v-spacer>
                 <RequestHistoryDialog
-                  v-if="!url_disabled && !files_disabled"
+                  v-if="editable"
                   cols="auto"
                   :history="request_history"
                   @loadRequest="request = $event"
@@ -36,7 +36,7 @@
                 <v-text-field
                   v-model="request.url"
                   :rules="url_rules"
-                  :disabled="!!url_disabled"
+                  :disabled="!editable"
                 />
               </v-card-text>
             </v-card>
@@ -54,7 +54,10 @@
               <v-card-text>
                 <v-tabs-items v-model="tab">
                   <v-tab-item>
-                    <RequestFiles v-model="request.files" />
+                    <RequestFiles
+                      v-model="request.files"
+                      :editable="editable"
+                    />
                   </v-tab-item>
                   <v-tab-item>
                     <RequestFields v-model="request.fields" />
@@ -130,7 +133,7 @@ import RequestFiles from "./components/RequestFiles.vue";
 import RequestHeaders from "./components/RequestHeaders.vue";
 import RequestFields from "./components/RequestFields.vue";
 
-const { VUE_APP_TARGET_URL, VUE_APP_TARGET_FILES } = process.env;
+const { VUE_APP_TARGET_URL = "", VUE_APP_FILES = "" } = process.env;
 
 export default {
   name: "App",
@@ -146,11 +149,8 @@ export default {
     return {
       valid: false,
 
-      url_disabled: VUE_APP_TARGET_URL,
-      files_disabled: VUE_APP_TARGET_FILES,
-
       request: {
-        url: VUE_APP_TARGET_URL,
+        url: "http://localhost:8080/test",
 
         files: [{ file: null, field_name: "image" }],
         fields: [],
@@ -187,15 +187,21 @@ export default {
     };
   },
   mounted() {
-    if (VUE_APP_TARGET_FILES) {
-      this.request.files = VUE_APP_TARGET_FILES.split(",").map(
-        (field_name) => ({
-          file: null,
-          field_name,
-        })
-      );
+    if (VUE_APP_TARGET_URL) {
+      this.request.url = VUE_APP_TARGET_URL;
+
+      this.request.files = VUE_APP_FILES
+        ? VUE_APP_FILES.split(",").map((field_name) => ({
+            file: null,
+            field_name,
+          }))
+        : [];
     }
-    if (!this.url_disabled && !this.files_disabled) this.load_history();
+
+    if (this.request.files.length === 0) {
+      console.warn("misconfigured environment");
+    }
+
     this.validate();
   },
 
@@ -299,6 +305,9 @@ export default {
     },
   },
   computed: {
+    editable() {
+      return !VUE_APP_TARGET_URL;
+    },
     response_pretty() {
       let output;
       try {
