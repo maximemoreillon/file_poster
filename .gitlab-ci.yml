@@ -5,7 +5,7 @@ variables:
 
 image: moreillon/ci-dind
 services:
-  - name: docker:19.03.12-dind
+  - name: docker:24.0.7-dind
 
 build:
   stage: build
@@ -23,6 +23,3 @@ build:
     # Pushing the image to the registry
     - docker push ${DOCKER_IMAGE}
     - docker push ${DOCKER_IMAGE_TAGGED}
-    # Cleanup
-    - docker image rm ${DOCKER_IMAGE}
-    - docker image rm ${DOCKER_IMAGE_TAGGED}
