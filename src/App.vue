@@ -135,6 +135,8 @@ import RequestFields from "./components/RequestFields.vue";
 
 const { VUE_APP_TARGET_URL = "", VUE_APP_FILES = "" } = process.env;
 
+const defaultFiles = [{ file: null, field_name: "image" }];
+
 export default {
   name: "App",
   components: {
@@ -152,7 +154,7 @@ export default {
       request: {
         url: "http://localhost:8080/test",
 
-        files: [{ file: null, field_name: "image" }],
+        files: defaultFiles,
         fields: [],
         headers: [],
       },
@@ -196,6 +198,8 @@ export default {
             field_name,
           }))
         : [];
+    } else {
+      this.load_history();
     }
 
     if (this.request.files.length === 0) {
@@ -221,7 +225,7 @@ export default {
       this.error = null;
       this.abortController = new AbortController();
 
-      this.add_request_to_history();
+      if (!VUE_APP_TARGET_URL) this.add_request_to_history();
 
       const formData = new FormData();
 
@@ -277,9 +281,10 @@ export default {
       if (JSON.stringify(this.request) === JSON.stringify(last_item)) return;
       this.request_history.push({
         ...this.request,
-        files: this.request.files.map((item) => {
-          return { file: null, field_name: item.field_name };
-        }),
+        files: this.request.files.map((item) => ({
+          file: null,
+          field_name: item.field_name,
+        })),
       });
       if (this.request_history.length > 10) this.request_history.shift();
       this.save_history();
@@ -293,8 +298,15 @@ export default {
       if (!history_stringified) return;
       try {
         this.request_history = JSON.parse(history_stringified);
-        const last_item = this.request_history[this.request_history.length - 1];
-        if (last_item) this.request = { ...last_item };
+        const last_item = this.request_history.at(-1);
+        if (last_item) {
+          this.request = {
+            files: defaultFiles,
+            fields: [],
+            headers: [],
+            ...last_item,
+          };
+        }
       } catch (error) {
         console.warn(error);
       }
