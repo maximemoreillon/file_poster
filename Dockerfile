@@ -1,5 +1,5 @@
-# Build the Vue app
-FROM node:20 as build-stage
+# Using Nove v16 for ERR_OSSL_EVP_UNSUPPORTED
+FROM node:16 as build-stage
 WORKDIR /app
 COPY package*.json ./
 
