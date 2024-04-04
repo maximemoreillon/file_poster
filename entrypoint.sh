@@ -10,6 +10,8 @@ do
 
   sed -i 's|VUE_APP_TARGET_URL_PLACEHOLDER|'${VUE_APP_TARGET_URL}'|g' $file
   sed -i 's|VUE_APP_FILES_PLACEHOLDER|'${VUE_APP_FILES}'|g' $file
+  sed -i 's|VUE_APP_FIELDS_PLACEHOLDER|'${VUE_APP_FIELDS}'|g' $file
+  sed -i 's|VUE_APP_HEADERS_PLACEHOLDER|'${VUE_APP_HEADERS}'|g' $file
 
 
 

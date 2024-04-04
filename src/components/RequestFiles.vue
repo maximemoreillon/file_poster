@@ -27,8 +27,8 @@
           <v-text-field
             v-model="item.field_name"
             label="Field name"
-            :rules="field_name_rules"
             :disabled="!editable"
+            :rules="field_name_rules"
             required
           />
         </v-col>
