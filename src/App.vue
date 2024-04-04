@@ -210,22 +210,14 @@ export default {
         : [];
       this.request.fields = VUE_APP_FIELDS
         ? VUE_APP_FIELDS.split(",").map((field) => {
-            const field_str = field.split("=", 2);
-            if (field_str.length === 2) {
-              return { name: field_str[0], value: field_str[1] };
-            } else {
-              return { name: field, value: "" };
-            }
+            const [name, value = ""] = field.split("=", 2);
+            return { name, value, readOnly: !!value };
           })
         : [];
       this.request.headers = VUE_APP_HEADERS
         ? VUE_APP_HEADERS.split(",").map((header) => {
-            const header_str = header.split("=", 2);
-            if (header_str.length === 2) {
-              return { key: header_str[0], value: header_str[1] };
-            } else {
-              return { key: header, value: "" };
-            }
+            const [key, value = ""] = header.split("=", 2);
+            return { key, value, readOnly: !!value };
           })
         : [];
     } else {
@@ -347,14 +339,15 @@ export default {
 
   computed: {
     tabs() {
-      let tabs = ["FILES", "FIELDS", "HEADERS"];
-      if (VUE_APP_TARGET_URL) {
-        tabs = ["FILES"];
+      if (!VUE_APP_TARGET_URL) {
+        return ["FILES", "FIELDS", "HEADERS"];
+      } else {
+        const tabs = ["FILES"];
         if (VUE_APP_FIELDS) tabs.push("FIELDS");
         if (VUE_APP_HEADERS) tabs.push("HEADERS");
-      }
 
-      return tabs;
+        return tabs;
+      }
     },
 
     url_editable() {

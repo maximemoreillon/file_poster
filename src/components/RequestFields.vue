@@ -28,7 +28,7 @@
           <v-text-field
             v-model="item.value"
             placeholder="Value"
-            :disabled="item.value !== ''"
+            :disabled="item.readOnly"
             :rules="value_rules"
             required
           />
