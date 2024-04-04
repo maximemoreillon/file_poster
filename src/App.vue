@@ -354,13 +354,13 @@ export default {
       return !VUE_APP_TARGET_URL;
     },
     files_editable() {
-      return !VUE_APP_TARGET_URL ? true : !VUE_APP_FILES;
+      return !(VUE_APP_TARGET_URL && VUE_APP_FILES);
     },
     fields_editable() {
-      return !VUE_APP_TARGET_URL ? true : !VUE_APP_FIELDS;
+      return !(VUE_APP_TARGET_URL && VUE_APP_FIELDS);
     },
     headers_editable() {
-      return !VUE_APP_TARGET_URL ? true : !VUE_APP_HEADERS;
+      return !(VUE_APP_TARGET_URL && VUE_APP_HEADERS);
     },
 
     response_pretty() {
