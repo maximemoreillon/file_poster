@@ -25,7 +25,7 @@
                 <v-toolbar-title>URL</v-toolbar-title>
                 <v-spacer></v-spacer>
                 <RequestHistoryDialog
-                  v-if="editable"
+                  v-if="url_editable"
                   cols="auto"
                   :history="request_history"
                   @loadRequest="request = $event"
@@ -36,7 +36,7 @@
                 <v-text-field
                   v-model="request.url"
                   :rules="url_rules"
-                  :disabled="!editable"
+                  :disabled="!url_editable"
                 />
               </v-card-text>
             </v-card>
@@ -53,17 +53,23 @@
               <v-divider />
               <v-card-text>
                 <v-tabs-items v-model="tab">
-                  <v-tab-item>
+                  <v-tab-item eager>
                     <RequestFiles
                       v-model="request.files"
-                      :editable="editable"
+                      :editable="files_editable"
                     />
                   </v-tab-item>
-                  <v-tab-item>
-                    <RequestFields v-model="request.fields" />
+                  <v-tab-item v-if="tabs.includes('FIELDS')" eager>
+                    <RequestFields
+                      v-model="request.fields"
+                      :editable="fields_editable"
+                    />
                   </v-tab-item>
-                  <v-tab-item>
-                    <RequestHeaders v-model="request.headers" />
+                  <v-tab-item v-if="tabs.includes('HEADERS')" eager>
+                    <RequestHeaders
+                      v-model="request.headers"
+                      :editable="headers_editable"
+                    />
                   </v-tab-item>
                 </v-tabs-items>
               </v-card-text>
@@ -133,7 +139,12 @@ import RequestFiles from "./components/RequestFiles.vue";
 import RequestHeaders from "./components/RequestHeaders.vue";
 import RequestFields from "./components/RequestFields.vue";
 
-const { VUE_APP_TARGET_URL = "", VUE_APP_FILES = "" } = process.env;
+const {
+  VUE_APP_TARGET_URL = "",
+  VUE_APP_FILES = "",
+  VUE_APP_FIELDS = "",
+  VUE_APP_HEADERS = "",
+} = process.env;
 
 const defaultFiles = [{ file: null, field_name: "image" }];
 
@@ -185,7 +196,6 @@ export default {
       response: null,
 
       tab: null,
-      tabs: ["Files", "Fields", "Headers"],
     };
   },
   mounted() {
@@ -198,6 +208,26 @@ export default {
             field_name,
           }))
         : [];
+      this.request.fields = VUE_APP_FIELDS
+        ? VUE_APP_FIELDS.split(",").map((field) => {
+            const field_str = field.split("=", 2);
+            if (field_str.length === 2) {
+              return { name: field_str[0], value: field_str[1] };
+            } else {
+              return { name: field, value: "" };
+            }
+          })
+        : [];
+      this.request.headers = VUE_APP_HEADERS
+        ? VUE_APP_HEADERS.split(",").map((header) => {
+            const header_str = header.split("=", 2);
+            if (header_str.length === 2) {
+              return { key: header_str[0], value: header_str[1] };
+            } else {
+              return { key: header, value: "" };
+            }
+          })
+        : [];
     } else {
       this.load_history();
     }
@@ -205,8 +235,6 @@ export default {
     if (this.request.files.length === 0) {
       console.warn("misconfigured environment");
     }
-
-    this.validate();
   },
 
   methods: {
@@ -316,10 +344,32 @@ export default {
       this.abortController.abort();
     },
   },
+
   computed: {
-    editable() {
+    tabs() {
+      let tabs = ["FILES", "FIELDS", "HEADERS"];
+      if (VUE_APP_TARGET_URL) {
+        tabs = ["FILES"];
+        if (VUE_APP_FIELDS) tabs.push("FIELDS");
+        if (VUE_APP_HEADERS) tabs.push("HEADERS");
+      }
+
+      return tabs;
+    },
+
+    url_editable() {
       return !VUE_APP_TARGET_URL;
     },
+    files_editable() {
+      return !VUE_APP_TARGET_URL ? true : !VUE_APP_FILES;
+    },
+    fields_editable() {
+      return !VUE_APP_TARGET_URL ? true : !VUE_APP_FIELDS;
+    },
+    headers_editable() {
+      return !VUE_APP_TARGET_URL ? true : !VUE_APP_HEADERS;
+    },
+
     response_pretty() {
       let output;
       try {

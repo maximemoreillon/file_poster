@@ -2,7 +2,7 @@
   <div>
     <v-row>
       <v-col cols="auto">
-        <v-btn small @click="add_field()">
+        <v-btn small v-if="editable" @click="add_field()">
           <v-icon left>mdi-plus</v-icon>
           <span>Add field</span>
         </v-btn>
@@ -18,6 +18,7 @@
           <v-text-field
             v-model="item.name"
             placeholder="Key"
+            :disabled="!editable"
             :rules="key_rules"
             required
           />
@@ -27,12 +28,13 @@
           <v-text-field
             v-model="item.value"
             placeholder="Value"
+            :disabled="item.value !== ''"
             :rules="value_rules"
             required
           />
         </v-col>
         <v-col cols="auto">
-          <v-btn icon @click="delete_field(index)">
+          <v-btn icon v-if="editable" @click="delete_field(index)">
             <v-icon>mdi-delete</v-icon>
           </v-btn>
         </v-col>
@@ -52,6 +54,7 @@ export default {
   name: "RequestHeadersManagement",
   props: {
     value: Array,
+    editable: Boolean,
   },
   data() {
     return {
