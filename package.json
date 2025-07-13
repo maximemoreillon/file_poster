@@ -1,7 +1,7 @@
 {
   "name": "file_poster",
   "version": "1.2.2",
-  "private": true,
+  "license": "MIT",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
