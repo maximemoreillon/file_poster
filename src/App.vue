@@ -260,7 +260,7 @@ export default {
       })
 
       const headers = this.request.headers.reduce(
-        (acc, header) => ({ ...acc, [header.name]: header.value }),
+        (acc, header) => ({ ...acc, [header.key]: header.value }),
         { "Content-Type": "multipart/form-data" }
       )
 
