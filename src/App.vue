@@ -212,8 +212,8 @@ export default {
         : []
       this.request.fields = VUE_APP_FIELDS
         ? VUE_APP_FIELDS.split(",").map((field) => {
-            const [name, value = ""] = field.split("=", 2)
-            return { name, value, readOnly: !!value }
+            const [key, value = ""] = field.split("=", 2)
+            return { key, value, readOnly: !!value }
           })
         : []
       this.request.headers = VUE_APP_HEADERS
@@ -256,7 +256,7 @@ export default {
       })
 
       this.request.fields.forEach((item) => {
-        formData.append(item.name, item.value)
+        formData.append(item.key, item.value)
       })
 
       const headers = this.request.headers.reduce(
