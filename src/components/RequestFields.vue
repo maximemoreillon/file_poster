@@ -16,7 +16,7 @@
       >
         <v-col>
           <v-text-field
-            v-model="item.name"
+            v-model="item.key"
             placeholder="Key"
             :disabled="!editable"
             :rules="key_rules"
@@ -64,7 +64,7 @@ export default {
   },
   methods: {
     add_field() {
-      this.fields.push({ name: "", value: "" });
+      this.fields.push({ key: "", value: "" });
     },
     delete_field(i) {
       this.fields.splice(i, 1);
